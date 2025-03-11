@@ -71,3 +71,37 @@ WHERE rank = 1 OR rank = 2;
 
 ```
 
+cte2 output:
+
+| Category     | Product                | Total Spend |
+|-------------|------------------------|-------------|
+| Appliance   | Refrigerator            | 299.99      |
+| Electronics | 3.5mm Headphone Jack    | 7.99        |
+| Appliance   | Washing Machine         | 439.80      |
+| Electronics | Computer Mouse          | 45.00       |
+| Electronics | Vacuum                  | 486.66      |
+| Appliance   | Microwave               | 49.99       |
+| Electronics | Wireless Headset        | 467.89      |
+
+
+cte3 output:
+
+| Category     | Product                | Total Spend | Rank |
+|-------------|------------------------|-------------|------|
+| Appliance   | Washing Machine         | 439.80      | 1    |
+| Appliance   | Refrigerator            | 299.99      | 2    |
+| Appliance   | Microwave               | 49.99       | 3    |
+| Electronics | Vacuum                  | 486.66      | 1    |
+| Electronics | Wireless Headset        | 467.89      | 2    |
+| Electronics | Computer Mouse          | 45.00       | 3    |
+| Electronics | 3.5mm Headphone Jack    | 7.99        | 4    |
+
+
+final query output:
+
+| Category     | Product          | Total Spend |
+|-------------|-----------------|-------------|
+| Appliance   | Washing Machine  | 439.80      |
+| Appliance   | Refrigerator     | 299.99      |
+| Electronics | Vacuum           | 486.66      |
+| Electronics | Wireless Headset | 467.89      |
