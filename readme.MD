@@ -71,6 +71,8 @@ WHERE rank = 1 OR rank = 2;
 
 ```
 
+**step by step**
+
 cte2 output:
 
 ```sql
@@ -131,6 +133,13 @@ cte3 AS(
 
 
 final query output:
+
+```sql
+
+SELECT category,product,total_spend FROM cte3
+WHERE rank = 1 OR rank = 2;
+
+```
 
 | Category     | Product          | Total Spend |
 |-------------|-----------------|-------------|
