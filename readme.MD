@@ -73,6 +73,26 @@ WHERE rank = 1 OR rank = 2;
 
 cte2 output:
 
+```sql
+
+WITH cte AS (
+
+  SELECT * FROM product_spend
+  WHERE EXTRACT(YEAR FROM transaction_date) = 2022
+),
+
+cte2 AS(
+
+  SELECT
+    category,
+    product,
+    SUM(spend) as total_spend
+  
+  FROM cte 
+  GROUP BY category,product
+)
+```  
+
 | Category     | Product                | Total Spend |
 |-------------|------------------------|-------------|
 | Appliance   | Refrigerator            | 299.99      |
@@ -85,6 +105,19 @@ cte2 output:
 
 
 cte3 output:
+
+```sql
+
+cte3 AS(
+
+  SELECT 
+  *,
+  RANK() OVER (PARTITION BY category ORDER BY total_spend DESC) AS rank
+  
+  FROM cte2
+
+)
+```
 
 | Category     | Product                | Total Spend | Rank |
 |-------------|------------------------|-------------|------|
