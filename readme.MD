@@ -383,37 +383,28 @@ monthly_cards_issued Example Input:
 ```sql
 
 WITH cte AS (
-
-SELECT 
-
-  card_name,
-  issued_amount,
-  issue_month,
-  issue_year,
-  MAKE_DATE(issue_year, issue_month, 1) as date
-
-  
-FROM monthly_cards_issued
-
+  SELECT 
+    card_name,
+    issued_amount,
+    issue_month,
+    issue_year,
+    MAKE_DATE(issue_year, issue_month, 1) as date
+  FROM monthly_cards_issued
 ),
 
 cte2 AS (
-
-  select 
+  SELECT 
     *,
-    MIN(date) OVER (ORDER BY issued_amount) as min_date
-
-  from cte
+    ROW_NUMBER() OVER (PARTITION BY card_name ORDER BY date ASC) as row_num
+  FROM cte
 )
 
-select 
-
+SELECT 
   card_name,
   issued_amount
-  
-from cte2
-where date = min_date
-order by issued_amount desc
+FROM cte2
+WHERE row_num = 1
+ORDER BY issued_amount DESC;
 
 ```
 
@@ -458,28 +449,26 @@ cte2 output:
 ```sql
 
 cte2 AS (
-
-  select 
+  SELECT 
     *,
-    MIN(date) OVER (ORDER BY issued_amount) as min_date
-
-  from cte
+    ROW_NUMBER() OVER (PARTITION BY card_name ORDER BY date ASC) as row_num
+  FROM cte
 )
 
 ```
 
 
-| Card Name              | Issued Amount | Issue Month | Issue Year | Date                  | Min Date              |
-|------------------------|---------------|-------------|------------|-----------------------|-----------------------|
-| Chase Freedom Flex     | 55000         | 1           | 2021       | 01/01/2021 00:00:00   | 01/01/2021 00:00:00   |
-| Chase Freedom Flex     | 60000         | 2           | 2021       | 02/01/2021 00:00:00   | 01/01/2021 00:00:00   |
-| Chase Freedom Flex     | 65000         | 3           | 2021       | 03/01/2021 00:00:00   | 01/01/2021 00:00:00   |
-| Chase Freedom Flex     | 70000         | 4           | 2021       | 04/01/2021 00:00:00   | 01/01/2021 00:00:00   |
-| Chase Sapphire Reserve | 150000        | 11          | 2020       | 11/01/2020 00:00:00   | 11/01/2020 00:00:00   |
-| Chase Sapphire Reserve | 160000        | 12          | 2020       | 12/01/2020 00:00:00   | 11/01/2020 00:00:00   |
-| Chase Sapphire Reserve | 170000        | 1           | 2021       | 01/01/2021 00:00:00   | 11/01/2020 00:00:00   |
-| Chase Sapphire Reserve | 175000        | 2           | 2021       | 02/01/2021 00:00:00   | 11/01/2020 00:00:00   |
-| Chase Sapphire Reserve | 180000        | 3           | 2021       | 03/01/2021 00:00:00   | 11/01/2020 00:00:00   |
+| Card Name              | Issued Amount | Issue Month | Issue Year | Date                  | Row Num |
+|------------------------|---------------|-------------|------------|-----------------------|---------|
+| Chase Freedom Flex     | 55000         | 1           | 2021       | 01/01/2021 00:00:00   | 1       |
+| Chase Freedom Flex     | 60000         | 2           | 2021       | 02/01/2021 00:00:00   | 2       |
+| Chase Freedom Flex     | 65000         | 3           | 2021       | 03/01/2021 00:00:00   | 3       |
+| Chase Freedom Flex     | 70000         | 4           | 2021       | 04/01/2021 00:00:00   | 4       |
+| Chase Sapphire Reserve | 150000        | 11          | 2020       | 11/01/2020 00:00:00   | 1       |
+| Chase Sapphire Reserve | 160000        | 12          | 2020       | 12/01/2020 00:00:00   | 2       |
+| Chase Sapphire Reserve | 170000        | 1           | 2021       | 01/01/2021 00:00:00   | 3       |
+| Chase Sapphire Reserve | 175000        | 2           | 2021       | 02/01/2021 00:00:00   | 4       |
+
 
 
 
@@ -495,6 +484,25 @@ select
 from cte2
 where date = min_date
 order by issued_amount desc
+
+```
+
+| Card Name              | Issued Amount |
+|------------------------|---------------|
+| Chase Sapphire Reserve | 150000        |
+| Chase Freedom Flex     | 55000         |
+
+
+final query output:
+
+```sql
+
+SELECT 
+  card_name,
+  issued_amount
+FROM cte2
+WHERE row_num = 1
+ORDER BY issued_amount DESC
 
 ```
 
