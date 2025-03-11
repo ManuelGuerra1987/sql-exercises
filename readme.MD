@@ -2,9 +2,12 @@
 
 ### Table of contents
 
+Medium:
+
 - [Question 1](#question-1)
 - [Question 2](#question-2)
 - [Question 3](#question-3)
+- [Question 4](#question-4)
 
 
 
@@ -490,3 +493,144 @@ ORDER BY issued_amount DESC
 |------------------------|---------------|
 | Chase Sapphire Reserve | 150000        |
 | Chase Freedom Flex     | 55000         |
+
+
+## Question 4
+
+**International Call Percentage**
+
+A phone call is considered an international call when the person calling is in a different country than the person receiving the call.
+
+What percentage of phone calls are international? Round the result to 1 decimal.
+
+phone_calls Example Input:
+
+| Caller ID | Receiver ID | Call Time            |
+|-----------|-------------|----------------------|
+| 1         | 2           | 2022-07-04 10:13:49 |
+| 1         | 5           | 2022-08-21 23:54:56 |
+| 5         | 1           | 2022-05-13 17:24:06 |
+| 5         | 6           | 2022-03-18 12:11:49 |
+
+
+phone_info Example Input:
+
+| Caller ID | Country ID | Network  | Phone Number       |
+|-----------|------------|----------|--------------------|
+| 1         | US         | Verizon  | +1-212-897-1964    |
+| 2         | US         | Verizon  | +1-703-346-9529    |
+| 3         | US         | Verizon  | +1-650-828-4774    |
+| 4         | US         | Verizon  | +1-415-224-6663    |
+| 5         | IN         | Vodafone | +91 7503-907302    |
+| 6         | IN         | Vodafone | +91 2287-664895    |
+
+
+**Query:**
+
+```sql
+
+WITH cte AS (
+
+SELECT 
+
+info1.country_id as caller,
+info2.country_id as receiver
+
+FROM phone_calls 
+JOIN phone_info info1 ON phone_calls.caller_id = info1.caller_id
+JOIN phone_info info2 ON phone_calls.receiver_id = info2.caller_id
+
+),
+
+cte2 AS (
+
+SELECT
+  *,
+  CASE WHEN cte.caller != cte.receiver THEN 1 ELSE 0 END AS inter
+  
+  FROM cte
+
+)
+
+select ROUND(CAST(SUM(inter) * 100.0 / COUNT(*) AS NUMERIC), 1) as international_calls_pct from cte2
+
+```
+
+**Step by step:**
+
+cte output:
+
+```sql
+
+WITH cte AS (
+
+SELECT 
+
+info1.country_id as caller,
+info2.country_id as receiver
+
+FROM phone_calls 
+JOIN phone_info info1 ON phone_calls.caller_id = info1.caller_id
+JOIN phone_info info2 ON phone_calls.receiver_id = info2.caller_id
+
+)
+
+```
+
+
+| Caller | Receiver |
+|--------|----------|
+| UK     | UK       |
+| IN     | UK       |
+| US     | UK       |
+| US     | UK       |
+| DE     | DE       |
+| DE     | DE       |
+
+
+cte2 output:
+
+```sql
+
+cte2 AS (
+
+SELECT
+  *,
+  CASE WHEN cte.caller != cte.receiver THEN 1 ELSE 0 END AS inter
+  
+  FROM cte
+
+)
+
+```
+
+
+| Caller | Receiver | Inter |
+|--------|----------|-------|
+| UK     | UK       | 0     |
+| IN     | UK       | 1     |
+| US     | UK       | 1     |
+| US     | UK       | 1     |
+| DE     | DE       | 0     |
+| DE     | DE       | 0     |
+| DE     | DE       | 0     |
+| DE     | DE       | 0     |
+| IN     | DE       | 1     |
+| US     | US       | 1     |
+| UK     | US       | 1     |
+
+
+
+final query output:
+
+```sql
+
+SELECT ROUND(CAST(SUM(inter) * 100.0 / COUNT(*) AS NUMERIC), 1) as international_calls_pct 
+FROM cte2;
+
+```
+
+
+| International Calls Percentage |
+|---------------------------------|
+| 54.5                            |
