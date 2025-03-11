@@ -3,6 +3,7 @@
 ### Table of contents
 
 - [Question 1](#question-1)
+- [Question 2](#question-2)
 
 
 
@@ -147,3 +148,208 @@ WHERE rank = 1 OR rank = 2;
 | Appliance   | Refrigerator     | 299.99      |
 | Electronics | Vacuum           | 486.66      |
 | Electronics | Wireless Headset | 467.89      |
+
+
+
+## Question 2
+
+**Top 5 Artists**
+
+Assume there are three Spotify tables: artists, songs, and global_song_rank, which contain information about the artists, songs, and music charts, respectively.
+
+Write a query to find the top 5 artists whose songs appear most frequently in the Top 10 of the global_song_rank table. Display the top 5 artist names in ascending order, along with their song appearance ranking.
+
+If two or more artists have the same number of song appearances, they should be assigned the same ranking, and the rank numbers should be continuous (i.e. 1, 2, 2, 3, 4, 5)
+
+
+artists Example Input:
+
+| Artist ID | Artist Name | Label Owner            |
+|-----------|------------|------------------------|
+| 101       | Ed Sheeran | Warner Music Group    |
+| 120       | Drake      | Warner Music Group    |
+| 125       | Bad Bunny  | Rimas Entertainment   |
+
+
+songs Example Input:
+
+| Song ID | Artist ID | Name           |
+|---------|----------|---------------|
+| 55511   | 101      | Perfect       |
+| 45202   | 101      | Shape of You  |
+| 22222   | 120      | One Dance     |
+| 19960   | 120      | Hotline Bling |
+
+
+global_song_rank Example Input:
+
+| Day | Song ID | Rank |
+|-----|---------|------|
+| 1   | 45202   | 5    |
+| 3   | 45202   | 2    |
+| 1   | 19960   | 3    |
+| 9   | 19960   | 15   |
+
+
+**Query:**
+
+
+```sql
+
+WITH cte AS (
+
+SELECT 
+  artists.artist_name,
+  songs.name,
+  global_song_rank.rank
+FROM global_song_rank
+JOIN songs ON global_song_rank.song_id = songs.song_id
+JOIN artists ON artists.artist_id = songs.artist_id
+
+
+),
+
+cte2 AS (
+
+SELECT * FROM cte
+WHERE rank <= 10
+
+
+),
+
+cte3 AS (
+
+select artist_name,count(rank) as counter from cte2
+group by artist_name
+
+),
+
+cte4 AS (
+
+SELECT 
+  *,
+  DENSE_RANK() OVER (ORDER BY counter DESC) as artist_rank
+
+  FROM cte3
+)
+
+select artist_name,artist_rank from cte4
+WHERE artist_rank <= 5
+
+```
+
+
+**Step by step:**
+
+cte2 output:
+
+```sql
+
+WITH cte AS (
+
+SELECT 
+  artists.artist_name,
+  songs.name,
+  global_song_rank.rank
+FROM global_song_rank
+JOIN songs ON global_song_rank.song_id = songs.song_id
+JOIN artists ON artists.artist_id = songs.artist_id
+
+
+),
+
+cte2 AS (
+
+SELECT * FROM cte
+WHERE rank <= 10
+
+
+)
+
+```
+
+
+| Artist Name | Song Name      | Rank |
+|-------------|--------------|------|
+| Ed Sheeran  | Shape of You | 2    |
+| Ed Sheeran  | Shape of You | 2    |
+| Ed Sheeran  | Shape of You | 6    |
+| Ed Sheeran  | Perfect      | 2    |
+| Drake       | Hotline Bling | 3    |
+| Bad Bunny   | Mia          | 9    |
+| Bad Bunny   | Mia          | 7    |
+| Bad Bunny   | Mia          | 7    |
+
+
+cte3 output:
+
+```sql
+
+cte3 AS (
+
+select artist_name,count(rank) as counter from cte2
+group by artist_name
+
+)
+```
+
+
+| Artist Name   | Counter |
+|---------------|---------|
+| Chris Brown   | 1       |
+| Lady Gaga     | 3       |
+| Katy Perry    | 2       |
+| Adele         | 5       |
+| Taylor Swift  | 8       |
+| Drake         | 7       |
+| Bad Bunny     | 7       |
+| Ariana Grande | 1       |
+| Ed Sheeran    | 5       |
+
+
+cte4 output:
+
+```sql
+
+cte4 AS (
+
+SELECT 
+  *,
+  DENSE_RANK() OVER (ORDER BY counter DESC) as artist_rank
+
+  FROM cte3
+)
+```
+
+
+| Artist Name   | Counter | Artist Rank |
+|---------------|---------|-------------|
+| Taylor Swift  | 8       | 1           |
+| Bad Bunny     | 7       | 2           |
+| Drake         | 7       | 2           |
+| Ed Sheeran    | 5       | 3           |
+| Adele         | 5       | 3           |
+| Lady Gaga     | 3       | 4           |
+| Katy Perry    | 2       | 5           |
+| Ariana Grande | 1       | 6           |
+| Chris Brown   | 1       | 6           |
+
+
+final query output:
+
+```sql
+
+select artist_name,artist_rank from cte4
+WHERE artist_rank <= 5
+
+```
+
+| Artist Name   | Artist Rank |
+|---------------|-------------|
+| Taylor Swift  | 1           |
+| Bad Bunny     | 2           |
+| Drake         | 2           |
+| Ed Sheeran    | 3           |
+| Adele         | 3           |
+| Lady Gaga     | 4           |
+| Katy Perry    | 5           |
