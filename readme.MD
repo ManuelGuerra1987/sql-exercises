@@ -472,26 +472,6 @@ cte2 AS (
 
 
 
-Final query output:
-
-```sql
-
-select 
-
-  card_name,
-  issued_amount
-  
-from cte2
-where date = min_date
-order by issued_amount desc
-
-```
-
-| Card Name              | Issued Amount |
-|------------------------|---------------|
-| Chase Sapphire Reserve | 150000        |
-| Chase Freedom Flex     | 55000         |
-
 
 final query output:
 
