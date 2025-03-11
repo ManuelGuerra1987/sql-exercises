@@ -4,6 +4,7 @@
 
 - [Question 1](#question-1)
 - [Question 2](#question-2)
+- [Question 3](#question-3)
 
 
 
@@ -353,3 +354,151 @@ WHERE artist_rank <= 5
 | Adele         | 3           |
 | Lady Gaga     | 4           |
 | Katy Perry    | 5           |
+
+
+
+## Question 3
+
+**Card Launch Success**
+
+Your team at JPMorgan Chase is soon launching a new credit card. You are asked to estimate how many cards you'll issue in the first month.
+
+Before you can answer this question, you want to first get some perspective on how well new credit card launches typically do in their first month.
+
+Write a query that outputs the name of the credit card, and how many cards were issued in its launch month. The launch month is the earliest record in the monthly_cards_issued table for a given card. Order the results starting from the biggest issued amount.
+
+monthly_cards_issued Example Input:
+
+| Issue Month | Issue Year | Card Name              | Issued Amount |
+|-------------|------------|------------------------|---------------|
+| 1           | 2021       | Chase Sapphire Reserve | 170000        |
+| 2           | 2021       | Chase Sapphire Reserve | 175000        |
+| 3           | 2021       | Chase Sapphire Reserve | 180000        |
+| 3           | 2021       | Chase Freedom Flex     | 65000         |
+| 4           | 2021       | Chase Freedom Flex     | 70000         |
+
+
+**Query:**
+
+```sql
+
+WITH cte AS (
+
+SELECT 
+
+  card_name,
+  issued_amount,
+  issue_month,
+  issue_year,
+  MAKE_DATE(issue_year, issue_month, 1) as date
+
+  
+FROM monthly_cards_issued
+
+),
+
+cte2 AS (
+
+  select 
+    *,
+    MIN(date) OVER (ORDER BY issued_amount) as min_date
+
+  from cte
+)
+
+select 
+
+  card_name,
+  issued_amount
+  
+from cte2
+where date = min_date
+order by issued_amount desc
+
+```
+
+**Step by step:**
+
+cte output:
+
+```sql
+
+WITH cte AS (
+
+SELECT 
+
+  card_name,
+  issued_amount,
+  issue_month,
+  issue_year,
+  MAKE_DATE(issue_year, issue_month, 1) as date
+
+  
+FROM monthly_cards_issued
+
+)
+
+```
+
+| Card Name              | Issued Amount | Issue Month | Issue Year | Date                  |
+|------------------------|---------------|-------------|------------|-----------------------|
+| Chase Sapphire Reserve | 160000        | 12          | 2020       | 12/01/2020 00:00:00   |
+| Chase Sapphire Reserve | 170000        | 1           | 2021       | 01/01/2021 00:00:00   |
+| Chase Sapphire Reserve | 175000        | 2           | 2021       | 02/01/2021 00:00:00   |
+| Chase Sapphire Reserve | 180000        | 3           | 2021       | 03/01/2021 00:00:00   |
+| Chase Freedom Flex     | 55000         | 1           | 2021       | 01/01/2021 00:00:00   |
+| Chase Freedom Flex     | 60000         | 2           | 2021       | 02/01/2021 00:00:00   |
+| Chase Freedom Flex     | 65000         | 3           | 2021       | 03/01/2021 00:00:00   |
+| Chase Freedom Flex     | 70000         | 4           | 2021       | 04/01/2021 00:00:00   |
+| Chase Sapphire Reserve | 150000        | 11          | 2020       | 11/01/2020 00:00:00   |
+
+
+cte2 output:
+
+```sql
+
+cte2 AS (
+
+  select 
+    *,
+    MIN(date) OVER (ORDER BY issued_amount) as min_date
+
+  from cte
+)
+
+```
+
+
+| Card Name              | Issued Amount | Issue Month | Issue Year | Date                  | Min Date              |
+|------------------------|---------------|-------------|------------|-----------------------|-----------------------|
+| Chase Freedom Flex     | 55000         | 1           | 2021       | 01/01/2021 00:00:00   | 01/01/2021 00:00:00   |
+| Chase Freedom Flex     | 60000         | 2           | 2021       | 02/01/2021 00:00:00   | 01/01/2021 00:00:00   |
+| Chase Freedom Flex     | 65000         | 3           | 2021       | 03/01/2021 00:00:00   | 01/01/2021 00:00:00   |
+| Chase Freedom Flex     | 70000         | 4           | 2021       | 04/01/2021 00:00:00   | 01/01/2021 00:00:00   |
+| Chase Sapphire Reserve | 150000        | 11          | 2020       | 11/01/2020 00:00:00   | 11/01/2020 00:00:00   |
+| Chase Sapphire Reserve | 160000        | 12          | 2020       | 12/01/2020 00:00:00   | 11/01/2020 00:00:00   |
+| Chase Sapphire Reserve | 170000        | 1           | 2021       | 01/01/2021 00:00:00   | 11/01/2020 00:00:00   |
+| Chase Sapphire Reserve | 175000        | 2           | 2021       | 02/01/2021 00:00:00   | 11/01/2020 00:00:00   |
+| Chase Sapphire Reserve | 180000        | 3           | 2021       | 03/01/2021 00:00:00   | 11/01/2020 00:00:00   |
+
+
+
+Final query output:
+
+```sql
+
+select 
+
+  card_name,
+  issued_amount
+  
+from cte2
+where date = min_date
+order by issued_amount desc
+
+```
+
+| Card Name              | Issued Amount |
+|------------------------|---------------|
+| Chase Sapphire Reserve | 150000        |
+| Chase Freedom Flex     | 55000         |
