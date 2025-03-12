@@ -9,6 +9,10 @@ Medium:
 - [Question 3](#question-3)
 - [Question 4](#question-4)
 
+Hard:
+
+- [Question 5](#question-5)
+- [Question 6](#question-6)
 
 
 ## Question 1
@@ -634,3 +638,108 @@ FROM cte2;
 | International Calls Percentage |
 |---------------------------------|
 | 54.5                            |
+
+
+
+## Question 5
+
+**Active User Retention**
+
+Assume you're given a table containing information on Facebook user actions. Write a query to obtain number of monthly active users (MAUs) in July 2022, including the month in numerical format "1, 2, 3".
+
+An active user is defined as a user who has performed actions such as 'sign-in', 'like', or 'comment' in both the current month and the previous month.
+
+
+user_actionsExample Input:
+
+| User ID | Event ID | Event Type | Event Date            |
+|---------|---------|------------|------------------------|
+| 445     | 7765    | sign-in    | 05/31/2022 12:00:00   |
+| 742     | 6458    | sign-in    | 06/03/2022 12:00:00   |
+| 445     | 3634    | like       | 06/05/2022 12:00:00   |
+| 742     | 1374    | comment    | 06/05/2022 12:00:00   |
+| 648     | 3124    | like       | 06/18/2022 12:00:00   |
+
+
+
+**Query:**
+
+```sql
+
+WITH cte AS (
+
+SELECT 
+
+*,
+EXTRACT (MONTH FROM event_date) AS month,
+EXTRACT (YEAR FROM event_date) AS year
+
+FROM user_actions
+)
+
+select 
+current.month,
+count(DISTINCT current.user_id) as monthly_active_users
+FROM cte current JOIN cte prev 
+ON current.user_id = prev.user_id
+AND current.year = prev.year
+AND current.month = prev.month +1
+WHERE current.month = 7 AND current.year = 2022
+GROUP BY current.month
+
+```
+
+
+**step by step**
+
+cte output:
+
+```sql
+
+
+WITH cte AS (
+
+SELECT 
+
+*,
+EXTRACT (MONTH FROM event_date) AS month,
+EXTRACT (YEAR FROM event_date) AS year
+
+FROM user_actions
+)
+```
+
+
+| User ID | Event ID | Event Type | Event Date            | Month | Year |
+|---------|---------|------------|------------------------|-------|------|
+| 445     | 7765    | sign-in    | 05/31/2022 12:00:00   | 5     | 2022 |
+| 445     | 3634    | like       | 06/05/2022 12:00:00   | 6     | 2022 |
+| 648     | 3124    | like       | 06/18/2022 12:00:00   | 6     | 2022 |
+| 648     | 2725    | sign-in    | 06/22/2022 12:00:00   | 6     | 2022 |
+| 648     | 8568    | comment    | 07/03/2022 12:00:00   | 7     | 2022 |
+| 445     | 4363    | sign-in    | 07/05/2022 12:00:00   | 7     | 2022 |
+| 445     | 2425    | like       | 07/06/2022 12:00:00   | 7     | 2022 |
+| 445     | 2484    | like       | 07/22/2022 12:00:00   | 7     | 2022 |
+
+
+
+final query output:
+
+```sql
+
+select 
+current.month,
+count(DISTINCT current.user_id) as monthly_active_users
+FROM cte current JOIN cte prev 
+ON current.user_id = prev.user_id
+AND current.year = prev.year
+AND current.month = prev.month +1
+WHERE current.month = 7 AND current.year = 2022
+GROUP BY current.month
+
+```
+
+
+| Month | Monthly Active Users |
+|-------|----------------------|
+| 7     | 2                    |
