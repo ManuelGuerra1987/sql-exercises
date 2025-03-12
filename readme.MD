@@ -227,8 +227,9 @@ WHERE rank <= 10
 
 cte3 AS (
 
-select artist_name,count(rank) as counter from cte2
-group by artist_name
+SELECT artist_name,count(rank) AS counter 
+FROM cte2
+GROUP BY artist_name
 
 ),
 
@@ -241,7 +242,8 @@ SELECT
   FROM cte3
 )
 
-select artist_name,artist_rank from cte4
+SELECT artist_name,artist_rank 
+FROM cte4
 WHERE artist_rank <= 5
 
 ```
@@ -295,8 +297,9 @@ WHERE rank <= 10
 
 cte3 AS (
 
-select artist_name,count(rank) as counter from cte2
-group by artist_name
+SELECT artist_name,count(rank) AS counter 
+FROM cte2
+GROUP BY artist_name
 
 )
 ```
@@ -347,7 +350,8 @@ SELECT
 
 ```sql
 
-select artist_name,artist_rank from cte4
+SELECT artist_name,artist_rank 
+FROM cte4
 WHERE artist_rank <= 5
 
 ```
@@ -556,7 +560,8 @@ SELECT
 
 )
 
-select ROUND(CAST(SUM(inter) * 100.0 / COUNT(*) AS NUMERIC), 1) as international_calls_pct from cte2
+SELECT ROUND(CAST(SUM(inter) * 100.0 / COUNT(*) AS NUMERIC), 1) AS international_calls_pct 
+FROM cte2
 
 ```
 
@@ -825,8 +830,8 @@ WITH cte AS (
   AND pizza2.topping_name < pizza3.topping_name
 
 )
-select CONCAT(topping1,',',topping2,',',topping3) AS pizza_concat,cost1+cost2+cost3 AS total_cost
-from cte
+SELECT CONCAT(topping1,',',topping2,',',topping3) AS pizza_concat,cost1+cost2+cost3 AS total_cost
+FROM cte
 ORDER BY total_cost DESC, pizza_concat ASC
 
 ```
