@@ -722,6 +722,37 @@ FROM user_actions
 | 445     | 2484    | like       | 07/22/2022 12:00:00   | 7     | 2022 |
 
 
+Self join output:
+
+```sql
+
+SELECT
+  current.user_id,
+  current.event_type,
+  current.month,
+  current.year,
+  prev.event_type,
+  prev.month,
+  prev.year
+  
+FROM cte current JOIN cte prev 
+ON current.user_id = prev.user_id
+AND current.year = prev.year
+AND current.month = prev.month +1
+```
+
+| User ID | Event Type | Month | Year | Event Type | Month | Year |
+|---------|------------|-------|------|------------|-------|------|
+| 445     | like       | 6     | 2022 | sign-in    | 5     | 2022 |
+| 648     | comment    | 7     | 2022 | sign-in    | 6     | 2022 |
+| 648     | comment    | 7     | 2022 | like       | 6     | 2022 |
+| 445     | sign-in    | 7     | 2022 | like       | 6     | 2022 |
+| 445     | like       | 7     | 2022 | like       | 6     | 2022 |
+| 445     | like       | 7     | 2022 | like       | 6     | 2022 |
+| 648     | sign-in    | 7     | 2022 | sign-in    | 6     | 2022 |
+| 648     | sign-in    | 7     | 2022 | like       | 6     | 2022 |
+| 445     | comment    | 7     | 2022 | like       | 6     | 2022 |
+
 
 final query output:
 
