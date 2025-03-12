@@ -917,7 +917,7 @@ cte3 AS (
 
 )
 
-select * from cte3
+SELECT * FROM cte3
 
 ```
 
