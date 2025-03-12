@@ -43,7 +43,7 @@ Example Output:
 | Electronics | Wireless Headset | 249.90      |
 
 
-**Query:**
+### Query:
 
 ```sql
 
@@ -80,9 +80,9 @@ WHERE rank = 1 OR rank = 2;
 
 ```
 
-**step by step**
+### step by step
 
-cte2 output:
+**cte2 output:**
 
 ```sql
 
@@ -115,7 +115,7 @@ cte2 AS(
 | Electronics | Wireless Headset        | 467.89      |
 
 
-cte3 output:
+**cte3 output:**
 
 ```sql
 
@@ -141,7 +141,7 @@ cte3 AS(
 | Electronics | 3.5mm Headphone Jack    | 7.99        | 4    |
 
 
-final query output:
+**final query output:**
 
 ```sql
 
@@ -199,7 +199,7 @@ global_song_rank Example Input:
 | 9   | 19960   | 15   |
 
 
-**Query:**
+### Query:
 
 
 ```sql
@@ -247,9 +247,9 @@ WHERE artist_rank <= 5
 ```
 
 
-**Step by step:**
+### step by step
 
-cte2 output:
+**cte2 output:**
 
 ```sql
 
@@ -289,7 +289,7 @@ WHERE rank <= 10
 | Bad Bunny   | Mia          | 7    |
 
 
-cte3 output:
+**cte3 output:**
 
 ```sql
 
@@ -315,7 +315,7 @@ group by artist_name
 | Ed Sheeran    | 5       |
 
 
-cte4 output:
+**cte4 output:**
 
 ```sql
 
@@ -343,7 +343,7 @@ SELECT
 | Chris Brown   | 1       | 6           |
 
 
-final query output:
+**final query output:**
 
 ```sql
 
@@ -385,7 +385,7 @@ monthly_cards_issued Example Input:
 | 4           | 2021       | Chase Freedom Flex     | 70000         |
 
 
-**Query:**
+### Query:
 
 ```sql
 
@@ -415,9 +415,9 @@ ORDER BY issued_amount DESC;
 
 ```
 
-**Step by step:**
+### step by step
 
-cte output:
+**cte output:**
 
 ```sql
 
@@ -451,7 +451,7 @@ FROM monthly_cards_issued
 | Chase Sapphire Reserve | 150000        | 11          | 2020       | 11/01/2020 00:00:00   |
 
 
-cte2 output:
+**cte2 output:**
 
 ```sql
 
@@ -480,7 +480,7 @@ cte2 AS (
 
 
 
-final query output:
+**final query output:**
 
 ```sql
 
@@ -529,7 +529,7 @@ phone_info Example Input:
 | 6         | IN         | Vodafone | +91 2287-664895    |
 
 
-**Query:**
+### Query:
 
 ```sql
 
@@ -560,9 +560,9 @@ select ROUND(CAST(SUM(inter) * 100.0 / COUNT(*) AS NUMERIC), 1) as international
 
 ```
 
-**Step by step:**
+### step by step
 
-cte output:
+**cte output:**
 
 ```sql
 
@@ -592,7 +592,7 @@ JOIN phone_info info2 ON phone_calls.receiver_id = info2.caller_id
 | DE     | DE       |
 
 
-cte2 output:
+**cte2 output:**
 
 ```sql
 
@@ -625,7 +625,7 @@ SELECT
 
 
 
-final query output:
+**final query output:**
 
 ```sql
 
@@ -662,7 +662,7 @@ user_actionsExample Input:
 
 
 
-**Query:**
+### Query:
 
 ```sql
 
@@ -690,9 +690,9 @@ GROUP BY current.month
 ```
 
 
-**step by step**
+### step by step
 
-cte output:
+**cte output:**
 
 ```sql
 
@@ -722,7 +722,7 @@ FROM user_actions
 | 445     | 2484    | like       | 07/22/2022 12:00:00   | 7     | 2022 |
 
 
-Self join output:
+**Self join output:**
 
 ```sql
 
@@ -754,7 +754,9 @@ AND current.month = prev.month +1
 | 445     | comment    | 7     | 2022 | like       | 6     | 2022 |
 
 
-final query output:
+The self-join is used to find users who were active in consecutive months.
+
+**final query output:**
 
 ```sql
 
