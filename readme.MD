@@ -776,3 +776,74 @@ GROUP BY current.month
 | Month | Monthly Active Users |
 |-------|----------------------|
 | 7     | 2                    |
+
+
+
+## Question 6
+
+**3-Topping Pizzas**
+
+You’re a consultant for a major pizza chain that will be running a promotion where all 3-topping pizzas will be sold for a fixed price, and are trying to understand the costs involved.
+
+Given a list of pizza toppings, consider all the possible 3-topping pizzas, and print out the total cost of those 3 toppings. Sort the results with the highest total cost on the top followed by pizza toppings in ascending order.
+
+Break ties by listing the ingredients in alphabetical order, starting from the first ingredient, followed by the second and third.
+
+Do not display pizzas where a topping is repeated. For example, ‘Pepperoni,Pepperoni,Onion Pizza’.
+
+Ingredients must be listed in alphabetical order. For example, 'Chicken,Onions,Sausage'. 'Onion,Sausage,Chicken' is not acceptable.
+
+pizza_toppings Example Input:
+
+| Topping Name  | Ingredient Cost |
+|--------------|----------------|
+| Pepperoni    | 0.50           |
+| Sausage      | 0.70           |
+| Chicken      | 0.55           |
+| Extra Cheese | 0.40           |
+
+
+### Query:
+
+```sql
+
+WITH cte AS (
+  
+  SELECT 
+  
+    pizza1.topping_name AS topping1,
+    pizza1.ingredient_cost AS cost1,
+    pizza2.topping_name AS topping2,
+    pizza2.ingredient_cost AS cost2,
+    pizza3.topping_name AS topping3,
+    pizza3.ingredient_cost AS cost3
+  
+  FROM pizza_toppings pizza1
+  CROSS JOIN pizza_toppings pizza2
+  CROSS JOIN pizza_toppings pizza3
+  WHERE pizza1.topping_name < pizza2.topping_name
+  AND pizza2.topping_name < pizza3.topping_name
+
+)
+select CONCAT(topping1,',',topping2,',',topping3) AS pizza_concat,cost1+cost2+cost3 AS total_cost
+from cte
+ORDER BY total_cost DESC, pizza_concat ASC
+
+```
+
+It uses CROSS JOIN to combine every row with every other row three times, generating all possible three-topping combinations.
+
+The WHERE condition ensures that each topping appears only once per combination and enforces an order (topping1 < topping2 < topping3) to prevent duplicates
+
+
+**final query output:**
+
+| Pizza Combination                         | Total Cost |
+|-------------------------------------------|------------|
+| Chicken, Pepperoni, Sausage               | 1.75       |
+| Chicken, Extra Cheese, Sausage            | 1.65       |
+| Extra Cheese, Pepperoni, Sausage          | 1.60       |
+| Chicken, Sausage, Spinach                 | 1.55       |
+| Chicken, Mushrooms, Sausage               | 1.50       |
+| Chicken, Pineapple, Sausage               | 1.50       |
+| Pepperoni, Sausage, Spinach               | 1.50       |
