@@ -830,7 +830,11 @@ WITH cte AS (
   AND pizza2.topping_name < pizza3.topping_name
 
 )
-SELECT CONCAT(topping1,',',topping2,',',topping3) AS pizza_concat,cost1+cost2+cost3 AS total_cost
+SELECT 
+
+  CONCAT(topping1,',',topping2,',',topping3) AS pizza_concat, 
+  cost1+cost2+cost3 AS total_cost
+
 FROM cte
 ORDER BY total_cost DESC, pizza_concat ASC
 
