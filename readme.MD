@@ -1151,7 +1151,7 @@ cte2 AS (
 
 This CTE calculates the time difference (in minutes) between each transaction and its previous one.
 
-| tran_id | mer_id | card_id | tt | amount | prev_tt       | prev_mer | prev_card | prev_amount | diff_min |
+| t_id | m_id | c_id | tt | amount | prev_tt       | prev_m | prev_c | prev_amo | diff |
 |---------------|-------------|----------------|------------------------|--------|----------------------|------------|-----------|-------------|--------------|
 | 1             | 101         | 1              | 09/25/2022 12:00:00    | 100    | NULL                 | NULL       | NULL      | NULL        | NULL         |
 | 2             | 101         | 1              | 09/25/2022 12:08:00    | 100    | 09/25/2022 12:00:00  | 101        | 1         | 100         | 8.0          |
