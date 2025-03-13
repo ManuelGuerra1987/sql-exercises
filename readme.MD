@@ -1121,7 +1121,7 @@ WITH cte AS (
 This Common Table Expression (CTE) retrieves all transactions and uses the LAG() window function to get details of the previous transaction for each (merchant_id, credit_card_id) pair, ordered by transaction_timestamp. This allows us to compare each transaction with its previous one
 
 
-| tran_id | merch_id | card_id | timestamp | amount | prev_timestamp       | prev_merch | prev_cred | prev_amount |
+| tran_id | mer_id | card_id | timestamp | amount | prev_tt    | prev_mer | prev_card | prev_amount |
 |---------------|------------|----------------|------------------------|--------|----------------------|------------|-----------|-------------|
 | 1             | 101        | 1              | 09/25/2022 12:00:00    | 100    | NULL                 | NULL       | NULL      | NULL        |
 | 2             | 101        | 1              | 09/25/2022 12:08:00    | 100    | 09/25/2022 12:00:00  | 101        | 1         | 100         |
@@ -1157,7 +1157,7 @@ cte2 AS (
 
 This CTE calculates the time difference (in minutes) between each transaction and its previous one.
 
-| tran_id | mer_id | card_id | timestamp | amount | prev_tt       | prev_mer | prev_card | prev_amount | diff_minu |
+| tran_id | mer_id | card_id | timestamp | amount | prev_tt       | prev_mer | prev_card | prev_amount | diff_min |
 |---------------|-------------|----------------|------------------------|--------|----------------------|------------|-----------|-------------|--------------|
 | 1             | 101         | 1              | 09/25/2022 12:00:00    | 100    | NULL                 | NULL       | NULL      | NULL        | NULL         |
 | 2             | 101         | 1              | 09/25/2022 12:08:00    | 100    | 09/25/2022 12:00:00  | 101        | 1         | 100         | 8.0          |
@@ -1195,7 +1195,7 @@ cte3 AS (
 This CTE checks if the current transaction has the same merchant_id, credit_card_id, and amount as the previous transaction.
 
 
-| transaction_id | merchant_id | credit_card_id | transaction_timestamp | amount | prev_timestamp       | prev_merch | prev_cred | prev_amount | diff_minutes | same_mer_cred_amount |
+| t_id | mer_id | card_id | tt | amount | prev_tt      | prev_mer | prev_card | prev_amount | diff_min | same |
 |---------------|-------------|----------------|------------------------|--------|----------------------|------------|-----------|-------------|--------------|----------------------|
 | 1             | 101         | 1              | 09/25/2022 12:00:00    | 100    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
 | 2             | 101         | 1              | 09/25/2022 12:08:00    | 100    | 09/25/2022 12:00:00  | 101        | 1         | 100         | 8.0          | 1                    |
