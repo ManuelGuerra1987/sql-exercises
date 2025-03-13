@@ -1192,7 +1192,7 @@ This CTE determines if a transaction should be counted as potentially fraudulent
 This CTE checks if the current transaction has the same merchant_id, credit_card_id, and amount as the previous transaction and the time difference (diff_minutes) is 10 minutes or less
 
 
-| t_id | m_id | c_id | timestamp   | amount | prev_timestamp        | prev_me | prev_c | prev_am | diff | counter |
+| t_id | m_id | c_id | tt   | amount | prev_tt     | prev_me | prev_c | prev_am | diff | counter |
 |----------------|-------------|-----------------|--------------------------|--------|-----------------------|------------|-----------|-------------|--------------|---------|
 | 1              | 101         | 1               | 09/25/2022 12:00:00      | 100    | NULL                  | NULL       | NULL      | NULL        | NULL         | 0       |
 | 2              | 101         | 1               | 09/25/2022 12:08:00      | 100    | 09/25/2022 12:00:00   | 101        | 1         | 100         | 8.0          | 1       |
