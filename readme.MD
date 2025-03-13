@@ -14,6 +14,7 @@ Hard:
 - [Question 5](#question-5)
 - [Question 6](#question-6)
 - [Question 7](#question-7)
+- [Question 8](#question-8)
 
 
 ## Question 1
@@ -1018,3 +1019,223 @@ SELECT * FROM cte3
 | 2021 | 543623     | 2345.00         | 5348.12         | -56.15   |
 | 2022 | 543623     | 5680.00         | 2345.00         | 142.22   |
 
+
+
+
+## Question 8
+
+**Repeated Payments**
+
+
+Sometimes, payment transactions are repeated by accident; it could be due to user error, API failure or a retry error that causes a credit card to be charged twice.
+
+Using the transactions table, identify any payments made at the same merchant with the same credit card for the same amount within 10 minutes of each other. Count such repeated payments.
+
+The first transaction of such payments should not be counted as a repeated payment. This means, if there are two transactions performed by a merchant with the same credit card and for the same amount within 10 minutes, there will only be 1 repeated payment.
+
+transactions Example Input:
+
+| transaction_id | merchant_id | credit_card_id | amount | transaction_timestamp  |
+|---------------|------------|----------------|--------|------------------------|
+| 1             | 101        | 1              | 100    | 09/25/2022 12:00:00    |
+| 2             | 101        | 1              | 100    | 09/25/2022 12:08:00    |
+| 3             | 101        | 1              | 100    | 09/25/2022 12:28:00    |
+| 4             | 102        | 2              | 300    | 09/25/2022 12:00:00    |
+| 6             | 102        | 2              | 400    | 09/25/2022 14:00:00    |
+
+Within 10 minutes after Transaction 1, Transaction 2 is conducted at Merchant 1 using the same credit card for the same amount. This is the only instance of repeated payment in the given sample data.
+
+
+### Query:
+
+```sql
+
+WITH cte AS (
+
+  SELECT
+    *,
+    LAG(transaction_timestamp) OVER (PARTITION BY merchant_id, credit_card_id ORDER BY transaction_timestamp) AS prev_timestamp,
+    LAG(merchant_id) OVER (PARTITION BY merchant_id, credit_card_id ORDER BY transaction_timestamp) AS prev_merch,
+    LAG(credit_card_id) OVER (PARTITION BY merchant_id, credit_card_id ORDER BY transaction_timestamp) AS prev_cred,
+    LAG(amount) OVER (PARTITION BY merchant_id, credit_card_id ORDER BY transaction_timestamp) AS prev_amount
+    
+  FROM transactions 
+
+),
+cte2 AS (
+
+  SELECT
+    *,
+    EXTRACT(EPOCH FROM (transaction_timestamp - prev_timestamp)) / 60 AS diff_minutes
+    
+    FROM cte
+
+),
+cte3 AS (
+
+  SELECT
+    *,
+    CASE 
+      WHEN merchant_id = prev_merch AND credit_card_id = prev_cred AND amount = prev_amount 
+      THEN 1 ELSE 0 
+    END AS same_mer_cred_amount
+    FROM cte2
+),
+
+cte4 AS (
+
+  SELECT
+
+  CASE WHEN same_mer_cred_amount = 1 AND diff_minutes <= 10 THEN 1 ELSE 0 END AS counter
+  
+  FROM cte3
+
+)
+
+select SUM(counter) AS payment_count from cte4
+
+```
+
+
+### step by step
+
+**cte output:**
+
+```sql
+
+WITH cte AS (
+
+  SELECT
+    *,
+    LAG(transaction_timestamp) OVER (PARTITION BY merchant_id, credit_card_id ORDER BY transaction_timestamp) AS prev_timestamp,
+    LAG(merchant_id) OVER (PARTITION BY merchant_id, credit_card_id ORDER BY transaction_timestamp) AS prev_merch,
+    LAG(credit_card_id) OVER (PARTITION BY merchant_id, credit_card_id ORDER BY transaction_timestamp) AS prev_cred,
+    LAG(amount) OVER (PARTITION BY merchant_id, credit_card_id ORDER BY transaction_timestamp) AS prev_amount
+    
+  FROM transactions 
+
+)
+
+```
+
+This Common Table Expression (CTE) retrieves all transactions and uses the LAG() window function to get details of the previous transaction for each (merchant_id, credit_card_id) pair, ordered by transaction_timestamp. This allows us to compare each transaction with its previous one
+
+
+| transaction_id | merchant_id | credit_card_id | transaction_timestamp | amount | prev_timestamp       | prev_merch | prev_cred | prev_amount |
+|---------------|------------|----------------|------------------------|--------|----------------------|------------|-----------|-------------|
+| 1             | 101        | 1              | 09/25/2022 12:00:00    | 100    | NULL                 | NULL       | NULL      | NULL        |
+| 2             | 101        | 1              | 09/25/2022 12:08:00    | 100    | 09/25/2022 12:00:00  | 101        | 1         | 100         |
+| 3             | 101        | 1              | 09/25/2022 12:28:00    | 100    | 09/25/2022 12:08:00  | 101        | 1         | 100         |
+| 5             | 101        | 1              | 09/25/2022 13:37:00    | 100    | 09/25/2022 12:28:00  | 101        | 1         | 100         |
+| 4             | 101        | 2              | 09/25/2022 12:20:00    | 300    | NULL                 | NULL       | NULL      | NULL        |
+| 6             | 102        | 2              | 09/25/2022 14:00:00    | 400    | NULL                 | NULL       | NULL      | NULL        |
+| 7             | 102        | 3              | 09/26/2022 10:00:00    | 300    | NULL                 | NULL       | NULL      | NULL        |
+| 8             | 102        | 3              | 09/26/2022 10:10:00    | 300    | 09/26/2022 10:00:00  | 102        | 3         | 300         |
+| 9             | 102        | 3              | 09/26/2022 10:14:00    | 300    | 09/26/2022 10:10:00  | 102        | 3         | 300         |
+| 10            | 103        | 4              | 09/27/2022 12:00:00    | 50     | NULL                 | NULL       | NULL      | NULL        |
+| 11            | 103        | 4              | 09/27/2022 12:09:00    | 50     | 09/27/2022 12:00:00  | 103        | 4         | 50          |
+| 12            | 103        | 4              | 09/27/2022 22:00:00    | 50     | 09/27/2022 12:09:00  | 103        | 4         | 50          |
+| 13            | 105        | 6              | 09/27/2022 12:00:00    | 200    | NULL                 | NULL       | NULL      | NULL        |
+| 14            | 105        | 6              | 09/27/2022 12:10:00    | 100    | 09/27/2022 12:00:00  | 105        | 6         | 200         |
+
+
+**cte2 output:**
+
+```sql
+
+cte2 AS (
+
+  SELECT
+    *,
+    EXTRACT(EPOCH FROM (transaction_timestamp - prev_timestamp)) / 60 AS diff_minutes
+    
+    FROM cte
+
+)
+
+```
+
+This CTE calculates the time difference (in minutes) between each transaction and its previous one.
+
+| transaction_id | merchant_id | credit_card_id | transaction_timestamp | amount | prev_timestamp       | prev_merch | prev_cred | prev_amount | diff_minutes |
+|---------------|-------------|----------------|------------------------|--------|----------------------|------------|-----------|-------------|--------------|
+| 1             | 101         | 1              | 09/25/2022 12:00:00    | 100    | NULL                 | NULL       | NULL      | NULL        | NULL         |
+| 2             | 101         | 1              | 09/25/2022 12:08:00    | 100    | 09/25/2022 12:00:00  | 101        | 1         | 100         | 8.0          |
+| 3             | 101         | 1              | 09/25/2022 12:28:00    | 100    | 09/25/2022 12:08:00  | 101        | 1         | 100         | 20.0         |
+| 5             | 101         | 1              | 09/25/2022 13:37:00    | 100    | 09/25/2022 12:28:00  | 101        | 1         | 100         | 69.0         |
+| 4             | 101         | 2              | 09/25/2022 12:20:00    | 300    | NULL                 | NULL       | NULL      | NULL        | NULL         |
+| 6             | 102         | 2              | 09/25/2022 14:00:00    | 400    | NULL                 | NULL       | NULL      | NULL        | NULL         |
+| 7             | 102         | 3              | 09/26/2022 10:00:00    | 300    | NULL                 | NULL       | NULL      | NULL        | NULL         |
+| 8             | 102         | 3              | 09/26/2022 10:10:00    | 300    | 09/26/2022 10:00:00  | 102        | 3         | 300         | 10.0         |
+| 9             | 102         | 3              | 09/26/2022 10:14:00    | 300    | 09/26/2022 10:10:00  | 102        | 3         | 300         | 4.0          |
+| 10            | 103         | 4              | 09/27/2022 12:00:00    | 50     | NULL                 | NULL       | NULL      | NULL        | NULL         |
+| 11            | 103         | 4              | 09/27/2022 12:09:00    | 50     | 09/27/2022 12:00:00  | 103        | 4         | 50          | 9.0          |
+| 12            | 103         | 4              | 09/27/2022 22:00:00    | 50     | 09/27/2022 12:09:00  | 103        | 4         | 50          | 591.0        |
+| 13            | 105         | 6              | 09/27/2022 12:00:00    | 200    | NULL                 | NULL       | NULL      | NULL        | NULL         |
+| 14            | 105         | 6              | 09/27/2022 12:10:00    | 100    | 09/27/2022 12:00:00  | 105        | 6         | 200         | 10.0         |
+
+
+
+**cte3 output:**
+
+```sql
+
+cte3 AS (
+
+  SELECT
+    *,
+    CASE 
+      WHEN merchant_id = prev_merch AND credit_card_id = prev_cred AND amount = prev_amount 
+      THEN 1 ELSE 0 
+    END AS same_mer_cred_amount
+    FROM cte2
+)
+```
+
+This CTE checks if the current transaction has the same merchant_id, credit_card_id, and amount as the previous transaction.
+
+
+| transaction_id | merchant_id | credit_card_id | transaction_timestamp | amount | prev_timestamp       | prev_merch | prev_cred | prev_amount | diff_minutes | same_mer_cred_amount |
+|---------------|-------------|----------------|------------------------|--------|----------------------|------------|-----------|-------------|--------------|----------------------|
+| 1             | 101         | 1              | 09/25/2022 12:00:00    | 100    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
+| 2             | 101         | 1              | 09/25/2022 12:08:00    | 100    | 09/25/2022 12:00:00  | 101        | 1         | 100         | 8.0          | 1                    |
+| 3             | 101         | 1              | 09/25/2022 12:28:00    | 100    | 09/25/2022 12:08:00  | 101        | 1         | 100         | 20.0         | 1                    |
+| 5             | 101         | 1              | 09/25/2022 13:37:00    | 100    | 09/25/2022 12:28:00  | 101        | 1         | 100         | 69.0         | 1                    |
+| 4             | 101         | 2              | 09/25/2022 12:20:00    | 300    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
+| 6             | 102         | 2              | 09/25/2022 14:00:00    | 400    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
+| 7             | 102         | 3              | 09/26/2022 10:00:00    | 300    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
+| 8             | 102         | 3              | 09/26/2022 10:10:00    | 300    | 09/26/2022 10:00:00  | 102        | 3         | 300         | 10.0         | 1                    |
+| 9             | 102         | 3              | 09/26/2022 10:14:00    | 300    | 09/26/2022 10:10:00  | 102        | 3         | 300         | 4.0          | 1                    |
+| 10            | 103         | 4              | 09/27/2022 12:00:00    | 50     | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
+| 11            | 103         | 4              | 09/27/2022 12:09:00    | 50     | 09/27/2022 12:00:00  | 103        | 4         | 50          | 9.0          | 1                    |
+| 12            | 103         | 4              | 09/27/2022 22:00:00    | 50     | 09/27/2022 12:09:00  | 103        | 4         | 50          | 591.0        | 1                    |
+| 13            | 105         | 6              | 09/27/2022 12:00:00    | 200    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
+| 14            | 105         | 6              | 09/27/2022 12:10:00    | 100    | 09/27/2022 12:00:00  | 105        | 6         | 200         | 10.0         | 0                    |
+
+
+
+**cte4 output:**
+
+
+```sql
+
+cte4 AS (
+
+  SELECT
+
+  CASE WHEN same_mer_cred_amount = 1 AND diff_minutes <= 10 THEN 1 ELSE 0 END AS counter
+  
+  FROM cte3
+
+)
+
+select SUM(counter) AS payment_count from cte4
+
+```
+
+This CTE determines if a transaction should be counted as potentially fraudulent.
+Finally, the query sums up the counter column to get the total number of suspicious transactions
+
+| payment_count |
+|---------------|
+| 4             |
