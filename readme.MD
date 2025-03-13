@@ -1071,28 +1071,22 @@ cte2 AS (
     FROM cte
 
 ),
+
+
 cte3 AS (
 
   SELECT
-    *,
-    CASE 
-      WHEN merchant_id = prev_merch AND credit_card_id = prev_cred AND amount = prev_amount 
-      THEN 1 ELSE 0 
-    END AS same_mer_cred_amount
-    FROM cte2
-),
-
-cte4 AS (
-
-  SELECT
-
-  CASE WHEN same_mer_cred_amount = 1 AND diff_minutes <= 10 THEN 1 ELSE 0 END AS counter
+  *,
+  CASE 
   
-  FROM cte3
+    WHEN merchant_id = prev_merch AND credit_card_id = prev_cred AND amount = prev_amount 
+    AND diff_minutes <= 10 THEN 1 ELSE 0 END AS counter
+  
+  FROM cte2
 
 )
 
-select SUM(counter) AS payment_count from cte4
+select SUM(counter) AS payment_count from cte3
 
 ```
 
@@ -1183,57 +1177,48 @@ This CTE calculates the time difference (in minutes) between each transaction an
 cte3 AS (
 
   SELECT
-    *,
-    CASE 
-      WHEN merchant_id = prev_merch AND credit_card_id = prev_cred AND amount = prev_amount 
-      THEN 1 ELSE 0 
-    END AS same_mer_cred_amount
-    FROM cte2
+  *,
+  CASE 
+  
+    WHEN merchant_id = prev_merch AND credit_card_id = prev_cred AND amount = prev_amount 
+    AND diff_minutes <= 10 THEN 1 ELSE 0 END AS counter
+  
+  FROM cte2
+
 )
 ```
+This CTE determines if a transaction should be counted as potentially fraudulent.
 
-This CTE checks if the current transaction has the same merchant_id, credit_card_id, and amount as the previous transaction.
-
-
-| t_id | mer_id | card_id | tt | amount | prev_tt      | prev_mer | prev_card | prev_amount | diff_min | same |
-|---------------|-------------|----------------|------------------------|--------|----------------------|------------|-----------|-------------|--------------|----------------------|
-| 1             | 101         | 1              | 09/25/2022 12:00:00    | 100    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
-| 2             | 101         | 1              | 09/25/2022 12:08:00    | 100    | 09/25/2022 12:00:00  | 101        | 1         | 100         | 8.0          | 1                    |
-| 3             | 101         | 1              | 09/25/2022 12:28:00    | 100    | 09/25/2022 12:08:00  | 101        | 1         | 100         | 20.0         | 1                    |
-| 5             | 101         | 1              | 09/25/2022 13:37:00    | 100    | 09/25/2022 12:28:00  | 101        | 1         | 100         | 69.0         | 1                    |
-| 4             | 101         | 2              | 09/25/2022 12:20:00    | 300    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
-| 6             | 102         | 2              | 09/25/2022 14:00:00    | 400    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
-| 7             | 102         | 3              | 09/26/2022 10:00:00    | 300    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
-| 8             | 102         | 3              | 09/26/2022 10:10:00    | 300    | 09/26/2022 10:00:00  | 102        | 3         | 300         | 10.0         | 1                    |
-| 9             | 102         | 3              | 09/26/2022 10:14:00    | 300    | 09/26/2022 10:10:00  | 102        | 3         | 300         | 4.0          | 1                    |
-| 10            | 103         | 4              | 09/27/2022 12:00:00    | 50     | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
-| 11            | 103         | 4              | 09/27/2022 12:09:00    | 50     | 09/27/2022 12:00:00  | 103        | 4         | 50          | 9.0          | 1                    |
-| 12            | 103         | 4              | 09/27/2022 22:00:00    | 50     | 09/27/2022 12:09:00  | 103        | 4         | 50          | 591.0        | 1                    |
-| 13            | 105         | 6              | 09/27/2022 12:00:00    | 200    | NULL                 | NULL       | NULL      | NULL        | NULL         | 0                    |
-| 14            | 105         | 6              | 09/27/2022 12:10:00    | 100    | 09/27/2022 12:00:00  | 105        | 6         | 200         | 10.0         | 0                    |
+This CTE checks if the current transaction has the same merchant_id, credit_card_id, and amount as the previous transaction and the time difference (diff_minutes) is 10 minutes or less
 
 
+| t_id | m_id | c_id | timestamp   | amount | prev_timestamp        | prev_me | prev_c | prev_am | diff | counter |
+|----------------|-------------|-----------------|--------------------------|--------|-----------------------|------------|-----------|-------------|--------------|---------|
+| 1              | 101         | 1               | 09/25/2022 12:00:00      | 100    | NULL                  | NULL       | NULL      | NULL        | NULL         | 0       |
+| 2              | 101         | 1               | 09/25/2022 12:08:00      | 100    | 09/25/2022 12:00:00   | 101        | 1         | 100         | 8.0          | 1       |
+| 3              | 101         | 1               | 09/25/2022 12:28:00      | 100    | 09/25/2022 12:08:00   | 101        | 1         | 100         | 20.0         | 0       |
+| 5              | 101         | 1               | 09/25/2022 13:37:00      | 100    | 09/25/2022 12:28:00   | 101        | 1         | 100         | 69.0         | 0       |
+| 4              | 101         | 2               | 09/25/2022 12:20:00      | 300    | NULL                  | NULL       | NULL      | NULL        | NULL         | 0       |
+| 6              | 102         | 2               | 09/25/2022 14:00:00      | 400    | NULL                  | NULL       | NULL      | NULL        | NULL         | 0       |
+| 7              | 102         | 3               | 09/26/2022 10:00:00      | 300    | NULL                  | NULL       | NULL      | NULL        | NULL         | 0       |
+| 8              | 102         | 3               | 09/26/2022 10:10:00      | 300    | 09/26/2022 10:00:00   | 102        | 3         | 300         | 10.0         | 1       |
+| 9              | 102         | 3               | 09/26/2022 10:14:00      | 300    | 09/26/2022 10:10:00   | 102        | 3         | 300         | 4.0          | 1       |
+| 10             | 103         | 4               | 09/27/2022 12:00:00      | 50     | NULL                  | NULL       | NULL      | NULL        | NULL         | 0       |
+| 11             | 103         | 4               | 09/27/2022 12:09:00      | 50     | 09/27/2022 12:00:00   | 103        | 4         | 50          | 9.0          | 1       |
+| 12             | 103         | 4               | 09/27/2022 22:00:00      | 50     | 09/27/2022 12:09:00   | 103        | 4         | 50          | 591.0        | 0       |
+| 13             | 105         | 6               | 09/27/2022 12:00:00      | 200    | NULL                  | NULL       | NULL      | NULL        | NULL         | 0       |
+| 14             | 105         | 6               | 09/27/2022 12:10:00      | 100    | 09/27/2022 12:00:00   | 105        | 6         | 200         | 10.0         | 0       |
 
-**cte4 output:**
 
+
+**final query output:**
 
 ```sql
 
-cte4 AS (
-
-  SELECT
-
-  CASE WHEN same_mer_cred_amount = 1 AND diff_minutes <= 10 THEN 1 ELSE 0 END AS counter
-  
-  FROM cte3
-
-)
-
-select SUM(counter) AS payment_count from cte4
+select SUM(counter) AS payment_count from cte3
 
 ```
 
-This CTE determines if a transaction should be counted as potentially fraudulent.
 Finally, the query sums up the counter column to get the total number of suspicious transactions
 
 | payment_count |
