@@ -7,7 +7,7 @@ Medium:
 - [Question 1: Highest Grossing Items](#question-1-highest-grossing-items)
 - [Question 2: Top 5 Artists](#question-2-top-5-artists)
 - [Question 3: Card Launch Success](#question-3-card-launch-success)
-- [Question 4: International Call Percentage](#international-call-percentage)
+- [Question 4: International Call Percentage](#question-4-international-call-percentage)
 
 Hard:
 
