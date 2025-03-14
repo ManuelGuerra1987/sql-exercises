@@ -4,23 +4,23 @@
 
 Medium:
 
-- [Question 1](#question-1)
-- [Question 2](#question-2)
-- [Question 3](#question-3)
-- [Question 4](#question-4)
+- [Question 1: Highest Grossing Items](#question-1-highest-grossing-items)
+- [Question 2: Top 5 Artists](#question-2-top-5-artists)
+- [Question 3: Card Launch Success](#question-3-card-launch-success)
+- [Question 4: International Call Percentage](#international-call-percentage)
 
 Hard:
 
-- [Question 5](#question-5)
-- [Question 6](#question-6)
-- [Question 7](#question-7)
-- [Question 8](#question-8)
-- [Question 9](#question-9)
+- [Question 5: Active User Retention](#question-5-active-user-retention)
+- [Question 6: 3 Topping Pizzas](#question-6-3-topping-pizzas)
+- [Question 7: Y on Y Growth Rate](#question-7-y-on-y-growth-rate)
+- [Question 8: Repeated Payments](#question-8-repeated-payments)
+- [Question 9: Server Utilization Time](#question-9-server-utilization-time)
 
 
-## Question 1
+## Question 1: Highest Grossing Items
 
-**Highest-Grossing Items**
+[Link](https://datalemur.com/questions/sql-highest-grossing)
 
 Assume you're given a table containing data on Amazon customers and their spending on products in different category, write a query to identify the top two highest-grossing products within each category in the year 2022. The output should include the category, product, and total spend.
 
@@ -162,9 +162,8 @@ WHERE rank = 1 OR rank = 2;
 
 
 
-## Question 2
+## Question 2: Top 5 Artists
 
-**Top 5 Artists**
 
 Assume there are three Spotify tables: artists, songs, and global_song_rank, which contain information about the artists, songs, and music charts, respectively.
 
@@ -371,9 +370,9 @@ WHERE artist_rank <= 5
 
 
 
-## Question 3
+## Question 3: Card Launch Success
 
-**Card Launch Success**
+[Link](https://datalemur.com/questions/card-launch-success)
 
 Your team at JPMorgan Chase is soon launching a new credit card. You are asked to estimate how many cards you'll issue in the first month.
 
@@ -506,9 +505,10 @@ ORDER BY issued_amount DESC
 | Chase Freedom Flex     | 55000         |
 
 
-## Question 4
+## Question 4: International Call Percentage
 
-**International Call Percentage**
+[Link](https://datalemur.com/questions/international-call-percentage)
+
 
 A phone call is considered an international call when the person calling is in a different country than the person receiving the call.
 
@@ -649,9 +649,10 @@ FROM cte2;
 
 
 
-## Question 5
+## Question 5: Active User Retention
 
-**Active User Retention**
+[Link](https://datalemur.com/questions/user-retention)
+
 
 Assume you're given a table containing information on Facebook user actions. Write a query to obtain number of monthly active users (MAUs) in July 2022, including the month in numerical format "1, 2, 3".
 
@@ -787,9 +788,10 @@ GROUP BY current.month
 
 
 
-## Question 6
+## Question 6: 3 Topping Pizzas
 
-**3-Topping Pizzas**
+[Link](https://datalemur.com/questions/pizzas-topping-cost)
+
 
 You’re a consultant for a major pizza chain that will be running a promotion where all 3-topping pizzas will be sold for a fixed price, and are trying to understand the costs involved.
 
@@ -862,9 +864,10 @@ The WHERE condition ensures that each topping appears only once per combination 
 
 
 
-## Question 7
+## Question 7: Y on Y Growth Rate
 
-**Y-on-Y Growth Rate**
+[Link](https://datalemur.com/questions/yoy-growth-rate)
+
 
 Assume you're given a table containing information about Wayfair user transactions for different products. Write a query to calculate the year-on-year growth rate for the total spend of each product, grouping the results by product ID.
 
@@ -1023,9 +1026,9 @@ SELECT * FROM cte3
 
 
 
-## Question 8
+## Question 8: Repeated Payments
 
-**Repeated Payments**
+[Link](https://datalemur.com/questions/repeated-payments)
 
 
 Sometimes, payment transactions are repeated by accident; it could be due to user error, API failure or a retry error that causes a credit card to be charged twice.
@@ -1228,9 +1231,9 @@ Finally, the query sums up the counter column to get the total number of suspici
 
 
 
-## Question 9
+## Question 9: Server Utilization Time
 
-**Server Utilization Time**
+[Link](https://datalemur.com/questions/total-utilization-time)
 
 
 Amazon Web Services (AWS) is powered by fleets of servers. Senior management has requested data-driven solutions to optimize server usage.
