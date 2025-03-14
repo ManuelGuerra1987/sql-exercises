@@ -15,6 +15,7 @@ Hard:
 - [Question 6](#question-6)
 - [Question 7](#question-7)
 - [Question 8](#question-8)
+- [Question 9](#question-9)
 
 
 ## Question 1
@@ -1224,3 +1225,169 @@ Finally, the query sums up the counter column to get the total number of suspici
 | payment_count |
 |---------------|
 | 4             |
+
+
+
+## Question 9
+
+**Server Utilization Time**
+
+
+Amazon Web Services (AWS) is powered by fleets of servers. Senior management has requested data-driven solutions to optimize server usage.
+
+Write a query that calculates the total time that the fleet of servers was running. The output should be in units of full days.
+
+Assumptions:
+
+- Each server might start and stop several times.
+- The total time in which the server fleet is running can be calculated as the sum of each server's uptime.
+
+server_utilization Example Input:
+
+
+| server_id | session_status | status_time          |
+|-----------|---------------|----------------------|
+| 1         | start         | 08/02/2022 10:00:00 |
+| 1         | stop          | 08/04/2022 10:00:00 |
+| 1         | stop          | 08/13/2022 19:00:00 |
+| 1         | start         | 08/13/2022 10:00:00 |
+| 3         | stop          | 08/19/2022 10:00:00 |
+| 3         | start         | 08/18/2022 10:00:00 |
+| 5         | stop          | 08/19/2022 10:00:00 |
+| 4         | stop          | 08/19/2022 14:00:00 |
+| 4         | start         | 08/16/2022 10:00:00 |
+| 3         | stop          | 08/14/2022 10:00:00 |
+| 3         | start         | 08/06/2022 10:00:00 |
+| 2         | stop          | 08/24/2022 10:00:00 |
+| 2         | start         | 08/17/2022 10:00:00 |
+| 5         | start         | 08/14/2022 21:00:00 |
+
+
+
+
+### Query:
+
+```sql
+
+
+WITH cte AS (
+
+  SELECT
+    *,
+    LAG(session_status) OVER (PARTITION BY server_id ORDER BY status_time) AS prev_status,
+    LAG(status_time) OVER (PARTITION BY server_id ORDER BY status_time) AS prev_time
+    
+    FROM server_utilization
+
+),
+
+cte2 AS (
+
+  SELECT
+    *,
+    CASE 
+      WHEN session_status = 'stop' AND prev_status = 'start'
+      THEN EXTRACT(EPOCH FROM (status_time - prev_time)) / 86400 END AS delta
+
+  FROM cte
+
+)
+
+SELECT FLOOR(SUM(delta)) AS total_uptime_days FROM cte2
+
+```
+
+
+### step by step
+
+**cte output:**
+
+```sql
+
+WITH cte AS (
+
+  SELECT
+    *,
+    LAG(session_status) OVER (PARTITION BY server_id ORDER BY status_time) AS prev_status,
+    LAG(status_time) OVER (PARTITION BY server_id ORDER BY status_time) AS prev_time
+    
+    FROM server_utilization
+
+)
+
+```
+
+This CTE adds the previous row’s session_status for the same server_id and the previous row’s status_time for the same server_id
+
+
+| server_id | session_status | status_time          | prev_status | prev_time           |
+|-----------|---------------|----------------------|-------------|----------------------|
+| 1         | start         | 08/02/2022 10:00:00 | NULL        | NULL                 |
+| 1         | stop          | 08/04/2022 10:00:00 | start       | 08/02/2022 10:00:00 |
+| 1         | start         | 08/13/2022 10:00:00 | stop        | 08/04/2022 10:00:00 |
+| 1         | stop          | 08/13/2022 19:00:00 | start       | 08/13/2022 10:00:00 |
+| 2         | start         | 08/17/2022 10:00:00 | NULL        | NULL                 |
+| 2         | stop          | 08/24/2022 10:00:00 | start       | 08/17/2022 10:00:00 |
+| 3         | start         | 08/06/2022 10:00:00 | NULL        | NULL                 |
+| 3         | stop          | 08/14/2022 10:00:00 | start       | 08/06/2022 10:00:00 |
+| 3         | start         | 08/18/2022 10:00:00 | stop        | 08/14/2022 10:00:00 |
+| 3         | stop          | 08/19/2022 10:00:00 | start       | 08/18/2022 10:00:00 |
+| 4         | start         | 08/16/2022 10:00:00 | NULL        | NULL                 |
+| 4         | stop          | 08/19/2022 14:00:00 | start       | 08/16/2022 10:00:00 |
+| 5         | start         | 08/14/2022 21:00:00 | NULL        | NULL                 |
+| 5         | stop          | 08/19/2022 10:00:00 | start       | 08/14/2022 21:00:00 |
+
+
+
+**cte2 output:**
+
+
+```sql
+
+cte2 AS (
+
+  SELECT
+    *,
+    CASE 
+      WHEN session_status = 'stop' AND prev_status = 'start'
+      THEN EXTRACT(EPOCH FROM (status_time - prev_time)) / 86400 END AS delta
+
+  FROM cte
+
+)
+
+```
+
+This CTE filters the rows where the session_status is "stop" and the prev_status was "start" (indicating a transition from running to stopped).Then it calculates the downtime in days.
+
+
+| server_id | session_status | status_time          | prev_status | prev_time           | delta                  |
+|-----------|---------------|----------------------|-------------|----------------------|------------------------|
+| 1         | start         | 08/02/2022 10:00:00 | NULL        | NULL                 | NULL                   |
+| 1         | stop          | 08/04/2022 10:00:00 | start       | 08/02/2022 10:00:00 | 2.0000000000000000     |
+| 1         | start         | 08/13/2022 10:00:00 | stop        | 08/04/2022 10:00:00 | NULL                   |
+| 1         | stop          | 08/13/2022 19:00:00 | start       | 08/13/2022 10:00:00 | 0.37500000000000000000 |
+| 2         | start         | 08/17/2022 10:00:00 | NULL        | NULL                 | NULL                   |
+| 2         | stop          | 08/24/2022 10:00:00 | start       | 08/17/2022 10:00:00 | 7.0000000000000000     |
+| 3         | start         | 08/06/2022 10:00:00 | NULL        | NULL                 | NULL                   |
+| 3         | stop          | 08/14/2022 10:00:00 | start       | 08/06/2022 10:00:00 | 8.0000000000000000     |
+| 3         | start         | 08/18/2022 10:00:00 | stop        | 08/14/2022 10:00:00 | NULL                   |
+| 3         | stop          | 08/19/2022 10:00:00 | start       | 08/18/2022 10:00:00 | 1.00000000000000000000 |
+| 4         | start         | 08/16/2022 10:00:00 | NULL        | NULL                 | NULL                   |
+| 4         | stop          | 08/19/2022 14:00:00 | start       | 08/16/2022 10:00:00 | 3.1666666666666667     |
+| 5         | start         | 08/14/2022 21:00:00 | NULL        | NULL                 | NULL                   |
+| 5         | stop          | 08/19/2022 10:00:00 | start       | 08/14/2022 21:00:00 | 4.5416666666666667     |
+
+
+
+**final query output:**
+
+```sql
+
+SELECT FLOOR(SUM(delta)) AS total_uptime_days FROM cte2
+
+```
+
+| total_uptime_days |
+| ------------------|
+| 26                |
