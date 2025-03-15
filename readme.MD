@@ -4,21 +4,22 @@
 
 Medium:
 
-- [Question 1: Highest Grossing Items](#question-1-highest-grossing-items)
-- [Question 2: Top 5 Artists](#question-2-top-5-artists)
-- [Question 3: Card Launch Success](#question-3-card-launch-success)
-- [Question 4: International Call Percentage](#question-4-international-call-percentage)
+- [Highest Grossing Items](#highest-grossing-items)
+- [Top 5 Artists](#top-5-artists)
+- [Card Launch Success](#card-launch-success)
+- [International Call Percentage](#international-call-percentage)
+- [Top Three Salaries](#top-three-salaries)
 
 Hard:
 
-- [Question 5: Active User Retention](#question-5-active-user-retention)
-- [Question 6: 3 Topping Pizzas](#question-6-3-topping-pizzas)
-- [Question 7: Y on Y Growth Rate](#question-7-y-on-y-growth-rate)
-- [Question 8: Repeated Payments](#question-8-repeated-payments)
-- [Question 9: Server Utilization Time](#question-9-server-utilization-time)
+- [Active User Retention](#active-user-retention)
+- [3 Topping Pizzas](#3-topping-pizzas)
+- [Y on Y Growth Rate](#y-on-y-growth-rate)
+- [Repeated Payments](#repeated-payments)
+- [Server Utilization Time](#server-utilization-time)
 
 
-## Question 1: Highest Grossing Items
+## Highest Grossing Items
 
 [Link](https://datalemur.com/questions/sql-highest-grossing)
 
@@ -162,7 +163,7 @@ WHERE rank = 1 OR rank = 2;
 
 
 
-## Question 2: Top 5 Artists
+## Top 5 Artists
 
 
 Assume there are three Spotify tables: artists, songs, and global_song_rank, which contain information about the artists, songs, and music charts, respectively.
@@ -370,7 +371,7 @@ WHERE artist_rank <= 5
 
 
 
-## Question 3: Card Launch Success
+## Card Launch Success
 
 [Link](https://datalemur.com/questions/card-launch-success)
 
@@ -505,7 +506,7 @@ ORDER BY issued_amount DESC
 | Chase Freedom Flex     | 55000         |
 
 
-## Question 4: International Call Percentage
+## International Call Percentage
 
 [Link](https://datalemur.com/questions/international-call-percentage)
 
@@ -649,7 +650,164 @@ FROM cte2;
 
 
 
-## Question 5: Active User Retention
+## Top Three Salaries
+
+[Link](https://datalemur.com/questions/sql-top-three-salaries)
+
+
+As part of an ongoing analysis of salary distribution within the company, your manager has requested a report identifying high earners in each department. A 'high earner' within a department is defined as an employee with a salary ranking among the top three salaries within that department.
+
+You're tasked with identifying these high earners across all departments. Write a query to display the employee's name along with their department name and salary. In case of duplicates, sort the results of department name in ascending order, then by salary in descending order. If multiple employees have the same salary, then order them alphabetically.
+
+Note: Ensure to utilize the appropriate ranking window function to handle duplicate salaries effectively.
+
+
+
+employee Example Input:
+
+| employee_id | name             | salary | department_id | manager_id |
+|------------|----------------|--------|--------------|------------|
+| 1          | Emma Thompson   | 3800   | 1            | 6          |
+| 2          | Daniel Rodriguez| 2230   | 1            | 7          |
+| 3          | Olivia Smith    | 2000   | 1            | 8          |
+| 4          | Noah Johnson    | 6800   | 2            | 9          |
+| 5          | Sophia Martinez | 1750   | 1            | 11         |
+| 6          | Liam Brown      | 13000  | 3            | NULL       |
+| 7          | Ava Garcia      | 12500  | 3            | NULL       |
+| 8          | William Davis   | 6800   | 2            | NULL       |
+| 9          | Isabella Wilson | 11000  | 3            | NULL       |
+| 10         | James Anderson  | 4000   | 1            | 11         |
+
+
+
+### Query:
+
+```sql
+
+WITH cte AS(
+
+  SELECT 
+    department_name,
+    name,
+    salary
+    
+  FROM employee JOIN department 
+  ON employee.department_id = department.department_id
+
+),
+
+cte2 AS(
+
+  SELECT
+  *,
+  DENSE_RANK() OVER (PARTITION BY department_name ORDER BY salary DESC) AS rank
+  
+  FROM cte
+)
+
+SELECT department_name,name,salary FROM cte2
+WHERE rank <= 3
+ORDER BY department_name ASC;
+
+```
+
+
+### step by step
+
+**cte output:**
+
+```sql
+
+WITH cte AS(
+
+  SELECT 
+    department_name,
+    name,
+    salary
+    
+  FROM employee JOIN department 
+  ON employee.department_id = department.department_id
+
+)
+
+```
+
+| department_name     | name                | salary |
+|--------------------|--------------------|--------|
+| Data Analytics    | Amelia Lee         | 4000   |
+| Data Analytics    | James Anderson     | 4000   |
+| Data Analytics    | Sophia Martinez    | 1750   |
+| Data Analytics    | Olivia Smith       | 7000   |
+| Data Analytics    | Daniel Rodriguez   | 2230   |
+| Data Analytics    | Emma Thompson      | 3800   |
+| Data Science      | Logan Moore        | 8000   |
+| Data Science      | Charlotte Miller   | 7000   |
+
+
+
+**cte2 output:**
+
+```sql
+
+cte2 AS(
+
+  SELECT
+  *,
+  DENSE_RANK() OVER (PARTITION BY department_name ORDER BY salary DESC) AS rank
+  
+  FROM cte
+)
+
+```
+
+| department_name     | name               | salary | rank |
+|--------------------|-------------------|--------|------|
+| Data Analytics    | Olivia Smith      | 7000   | 1    |
+| Data Analytics    | Amelia Lee        | 4000   | 2    |
+| Data Analytics    | James Anderson    | 4000   | 2    |
+| Data Analytics    | Emma Thompson     | 3800   | 3    |
+| Data Analytics    | Daniel Rodriguez  | 2230   | 4    |
+| Data Analytics    | Sophia Martinez   | 1750   | 5    |
+| Data Engineering  | Liam Brown        | 13000  | 1    |
+| Data Engineering  | Ava Garcia        | 12500  | 2    |
+| Data Engineering  | Isabella Wilson   | 11000  | 3    |
+| Data Engineering  | Mia Taylor        | 10800  | 4    |
+| Data Engineering  | Benjamin Hernandez| 9500   | 5    |
+| Data Science     | Logan Moore       | 8000   | 1    |
+| Data Science     | Charlotte Miller  | 7000   | 2    |
+| Data Science     | Noah Johnson      | 6800   | 3    |
+| Data Science     | William Davis     | 6800   | 3    |
+
+
+**final query output:**
+
+```sql
+
+SELECT department_name,name,salary FROM cte2
+WHERE rank <= 3
+ORDER BY department_name ASC;
+
+```
+
+
+| department_name    | name              | salary |
+|-------------------|------------------|--------|
+| Data Analytics   | Olivia Smith     | 7000   |
+| Data Analytics   | Amelia Lee       | 4000   |
+| Data Analytics   | James Anderson   | 4000   |
+| Data Analytics   | Emma Thompson    | 3800   |
+| Data Engineering | Liam Brown       | 13000  |
+| Data Engineering | Ava Garcia       | 12500  |
+| Data Engineering | Isabella Wilson  | 11000  |
+| Data Science     | Logan Moore      | 8000   |
+| Data Science     | Charlotte Miller | 7000   |
+| Data Science     | Noah Johnson     | 6800   |
+| Data Science     | William Davis    | 6800   |
+
+
+
+
+## Active User Retention
 
 [Link](https://datalemur.com/questions/user-retention)
 
@@ -788,7 +946,7 @@ GROUP BY current.month
 
 
 
-## Question 6: 3 Topping Pizzas
+## 3 Topping Pizzas
 
 [Link](https://datalemur.com/questions/pizzas-topping-cost)
 
@@ -864,7 +1022,7 @@ The WHERE condition ensures that each topping appears only once per combination 
 
 
 
-## Question 7: Y on Y Growth Rate
+## Y on Y Growth Rate
 
 [Link](https://datalemur.com/questions/yoy-growth-rate)
 
@@ -1026,7 +1184,7 @@ SELECT * FROM cte3
 
 
 
-## Question 8: Repeated Payments
+## Repeated Payments
 
 [Link](https://datalemur.com/questions/repeated-payments)
 
@@ -1231,7 +1389,7 @@ Finally, the query sums up the counter column to get the total number of suspici
 
 
 
-## Question 9: Server Utilization Time
+## Server Utilization Time
 
 [Link](https://datalemur.com/questions/total-utilization-time)
 
