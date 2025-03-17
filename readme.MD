@@ -17,6 +17,7 @@ Hard:
 - [Y on Y Growth Rate](#y-on-y-growth-rate)
 - [Repeated Payments](#repeated-payments)
 - [Server Utilization Time](#server-utilization-time)
+- [Department vs Company Salary](#department-vs-company-salary)
 
 
 ## Highest Grossing Items
@@ -1552,3 +1553,210 @@ SELECT FLOOR(SUM(delta)) AS total_uptime_days FROM cte2
 | total_uptime_days |
 | ------------------|
 | 26                |
+
+
+
+## Department vs Company Salary
+
+[Link](https://datalemur.com/questions/sql-department-company-salary-comparison)
+
+The company wants to understand how the average salary in each department compares to the company's overall average salary each month.
+
+Write a query to compare the average salary of employees in each department to the company's average salary for March 2024. Return the comparison result as 'higher', 'lower', or 'same' for each department. Display the department ID, payment month (in MM-YYYY format), and the comparison result.
+
+employee Example Input:
+
+| employee_id | name              | salary | department_id | manager_id |
+|------------|------------------|--------|--------------|------------|
+| 1          | Emma Thompson    | 3800   | 1            | 6          |
+| 2          | Daniel Rodriguez | 2230   | 1            | 7          |
+| 3          | Olivia Smith     | 7000   | 1            | 8          |
+| 5          | Sophia Martinez  | 1750   | 1            | 11         |
+
+
+salary Example Input:
+
+| salary_id | employee_id | amount | payment_date         |
+|-----------|------------|--------|----------------------|
+| 1         | 1          | 3800   | 01/31/2024 00:00:00 |
+| 2         | 2          | 2230   | 01/31/2024 00:00:00 |
+| 3         | 3          | 7000   | 01/31/2024 00:00:00 |
+| 4         | 4          | 6800   | 01/31/2024 00:00:00 |
+| 5         | 5          | 1750   | 01/31/2024 00:00:00 |
+
+
+### Query:
+
+```sql
+
+WITH cte AS (
+
+  SELECT
+    
+    salary.amount,
+    employee.department_id,
+    TO_CHAR(payment_date, 'MM-YYYY') AS payment_date
+    
+  FROM salary 
+  JOIN employee ON salary.employee_id = employee.employee_id
+
+),
+
+cte2 AS (
+
+  SELECT
+    *,
+    AVG(amount) OVER (PARTITION BY department_id) AS avg_dep,
+    AVG(amount) OVER () AS avg_global
+    
+  FROM cte  
+),
+
+cte3 AS (
+
+  SELECT
+    *,
+    CASE WHEN avg_dep > avg_global THEN 'higher'
+         WHEN avg_dep < avg_global THEN 'lower'
+         ELSE 'same' END AS comparison
+         
+  FROM cte2       
+
+)
+
+SELECT DISTINCT 
+
+  department_id,
+  payment_date,
+  comparison
+  
+FROM cte3
+WHERE payment_date = '03-2024'
+
+```
+
+### step by step
+
+**cte output:**
+
+```sql
+
+WITH cte AS (
+
+  SELECT
+    
+    salary.amount,
+    employee.department_id,
+    TO_CHAR(payment_date, 'MM-YYYY') AS payment_date
+    
+  FROM salary 
+  JOIN employee ON salary.employee_id = employee.employee_id
+
+)
+```
+
+
+| amount | department_id | payment_date |
+|--------|--------------|--------------|
+| 3800   | 1            | 03-2024      |
+| 3800   | 1            | 02-2024      |
+| 3800   | 1            | 01-2024      |
+| 7000   | 1            | 01-2024      |
+| 6800   | 2            | 03-2024      |
+| 6800   | 2            | 02-2024      |
+| 6800   | 2            | 01-2024      |
+
+
+**cte2 output:**
+
+```sql
+
+cte2 AS (
+
+  SELECT
+    *,
+    AVG(amount) OVER (PARTITION BY department_id) AS avg_dep,
+    AVG(amount) OVER () AS avg_global
+    
+  FROM cte  
+)
+
+```
+
+| amount | department_id | payment_date | avg_dep          | avg_global        |
+|--------|--------------|--------------|------------------|------------------|
+| 3800   | 1            | 03-2024      | 3796.6666666667  | 7212.0000000000  |
+| 4000   | 1            | 01-2024      | 3796.6666666667  | 7212.0000000000  |
+| 4000   | 1            | 02-2024      | 3796.6666666667  | 7212.0000000000  |
+| 2230   | 1            | 02-2024      | 3796.6666666667  | 7212.0000000000  |
+| 2230   | 1            | 01-2024      | 3796.6666666667  | 7212.0000000000  |
+| 8000   | 2            | 03-2024      | 7150.0000000000  | 7212.0000000000  |
+| 6800   | 2            | 03-2024      | 7150.0000000000  | 7212.0000000000  |
+| 6800   | 2            | 02-2024      | 7150.0000000000  | 7212.0000000000  |
+| 6800   | 2            | 01-2024      | 7150.0000000000  | 7212.0000000000  |
+| 10800  | 3            | 03-2024      | 11360.0000000000 | 7212.0000000000  |
+| 10800  | 3            | 02-2024      | 11360.0000000000 | 7212.0000000000  |
+| 10800  | 3            | 01-2024      | 11360.0000000000 | 7212.0000000000  |
+| 9500   | 3            | 03-2024      | 11360.0000000000 | 7212.0000000000  |
+| 9500   | 3            | 02-2024      | 11360.0000000000 | 7212.0000000000  |
+| 9500   | 3            | 01-2024      | 11360.0000000000 | 7212.0000000000  |
+
+
+
+**cte3 output:**
+
+```sql
+
+cte3 AS (
+
+  SELECT
+    *,
+    CASE WHEN avg_dep > avg_global THEN 'higher'
+         WHEN avg_dep < avg_global THEN 'lower'
+         ELSE 'same' END AS comparison
+         
+  FROM cte2       
+
+)
+```
+
+| amount | department_id | payment_date | avg_dep | avg_global | comparison |
+|--------|--------------|--------------|---------|------------|------------|
+| 3800   | 1            | 03-2024      | 3796.67 | 7212.00    | lower      |
+| 4000   | 1            | 01-2024      | 3796.67 | 7212.00    | lower      |
+| 4000   | 1            | 02-2024      | 3796.67 | 7212.00    | lower      |
+| 2230   | 1            | 02-2024      | 3796.67 | 7212.00    | lower      |
+| 2230   | 1            | 01-2024      | 3796.67 | 7212.00    | lower      |
+| 8000   | 2            | 03-2024      | 7150.00 | 7212.00    | lower      |
+| 6800   | 2            | 03-2024      | 7150.00 | 7212.00    | lower      |
+| 6800   | 2            | 02-2024      | 7150.00 | 7212.00    | lower      |
+| 6800   | 2            | 01-2024      | 7150.00 | 7212.00    | lower      |
+| 10800  | 3            | 03-2024      | 11360.00 | 7212.00    | higher     |
+| 10800  | 3            | 02-2024      | 11360.00 | 7212.00    | higher     |
+| 10800  | 3            | 01-2024      | 11360.00 | 7212.00    | higher     |
+| 9500   | 3            | 03-2024      | 11360.00 | 7212.00    | higher     |
+| 9500   | 3            | 02-2024      | 11360.00 | 7212.00    | higher     |
+| 9500   | 3            | 01-2024      | 11360.00 | 7212.00    | higher     |
+
+
+**final query output:**
+
+```sql
+
+SELECT DISTINCT 
+
+  department_id,
+  payment_date,
+  comparison
+  
+FROM cte3
+WHERE payment_date = '03-2024'
+
+```
+
+
+| department_id | payment_date | comparison |
+|---------------|--------------|------------|
+| 1             | 03-2024      | lower      |
+| 2             | 03-2024      | lower      |
+| 3             | 03-2024      | higher     |
